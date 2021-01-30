@@ -1,7 +1,7 @@
 from iqoptionapi.stable_api import IQ_Option
 import PySimpleGUI as sg
 from datetime import datetime
-import time, threading
+import time, threading, schedule
 
 global contador
 
@@ -15,7 +15,7 @@ class TelaLogin:
 
         window = sg.Window("iqOption Bot").layout(layout)
         self.window = window
-        self.button, self.values = window.Read()
+        self.event, self.values = window.Read()
 
         while self.values[0] == "" or self.values[1] == "":
             layout = [
@@ -26,7 +26,7 @@ class TelaLogin:
                      ]
             window = sg.Window("iqOption Bot").layout(layout)
             self.window = window
-            self.button, self.values = window.Read()
+            self.event, self.values = window.Read()
 
 
 class Tela:
@@ -40,12 +40,12 @@ class Tela:
                   [sg.Checkbox('Conta Real', key = "account")],
                   [sg.OptionMenu(values = symbols, key = "symbol"), sg.OptionMenu(values = tempo, key = "time"), sg.OptionMenu(values = opt, key = "opt")],
                   [sg.Output(size = (60,5), echo_stdout_stderr = True)],
-                  [sg.Submit("Operar")]
+                  [sg.Button("Operar", visible=True, key="submit")]
                  ] 
 
         window = sg.Window("iqOption Bot").layout(layout)
         self.window = window
-        self.button, self.values = window.Read()
+        self.event, self.values = window.Read()
 
 def Buy(quantity, symbol, opt, expireTime):
     check, id = api.buy(quantity, symbol, opt, expireTime)
@@ -55,6 +55,16 @@ def Buy(quantity, symbol, opt, expireTime):
     else:
         print("Operação falhou :(")
         return
+
+def operar(value, symbol , opt, expireTime):  
+    print("Deu a hora menó, iniciando a operação")
+    threading.Thread(target=Buy, args=(value, symbol , opt, expireTime, )).start()
+
+def agendar(hour_input, value, symbol , opt, expireTime):
+    schedule.every().day.at(hour_input).do(operar, value, symbol , opt, expireTime)
+    while True: 
+        schedule.run_pending()
+        time.sleep(1)
 
 telaLogin = TelaLogin()
 #api = IQ_Option(str(telaLogin.values[0]), str(telaLogin.values[1]))
@@ -90,20 +100,15 @@ elif tela.values["time"] == "5 min":
 else:
     tela.values["time"] = 15  
 
-contador = 0  
-    
-
 if tela.values["hour"]:
-    print("Horário definido para " + str(tela.values["hour-input"]))
+    hour_input = str(tela.values["hour-input"])
+    print("Horário definido para " + hour_input)
     value = float(tela.values["value-input"])
     symbol = tela.values["symbol"]
     opt = tela.values["opt"]
     expireTime = tela.values["time"]
+    threading.Thread(target=agendar, args=(hour_input, value, symbol , opt, expireTime, )).start()
+    tela.window.Element("submit").Update(disabled = True)
     while True:
-        if str(tela.values["hour-input"]) == str(datetime.now().strftime("%H:%M")) and contador == 0:
-            print("Deu o horário menó, iniciando a operação")
-            contador = 1
-            threading.Thread(target = Buy, args = (value, symbol, opt, expireTime, )).start()
-            tela.window.Read()
-        else:
-            time.sleep(0.9)
+        tela.window.Read()
+    
