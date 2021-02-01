@@ -3,8 +3,9 @@ import PySimpleGUI as sg
 from datetime import datetime
 import time, threading, schedule
 
-global contador
-
+#
+#Tela de login
+#
 class TelaLogin:
     def __init__(self):
         layout = [
@@ -28,7 +29,9 @@ class TelaLogin:
             self.window = window
             self.event, self.values = window.Read()
 
-
+#
+#Tela principal
+#
 class Tela:
     def __init__(self):
         symbols = ["EURUSD", "EURJPY", "EURNZD", "EURAUD", "USDJPY", "AUDUSD", "AUDJPY", "NZDUSD", "EURUSD-OTC"]
@@ -47,6 +50,12 @@ class Tela:
         self.window = window
         self.event, self.values = window.Read()
 
+#
+#declarações de funções
+#Buy = função que chama a api e executa a compra; 
+#agendar = função que cria o schedule e fica em loop infinito tentando executar schedule (deve ser chamada por uma thread)
+#operar = função chamada pelo schedule da agendar, que vai chamar a Buy em uma nova thread
+#
 def Buy(quantity, symbol, opt, expireTime):
     check, id = api.buy(quantity, symbol, opt, expireTime)
     if check:
@@ -66,6 +75,9 @@ def agendar(hour_input, value, symbol , opt, expireTime):
         schedule.run_pending()
         time.sleep(1)
 
+#
+#Começa instanciando a tela de login e fazendo as verificações
+#
 telaLogin = TelaLogin()
 #api = IQ_Option(str(telaLogin.values[0]), str(telaLogin.values[1]))
 api = IQ_Option("alexandrealen03@gmail.com","alexandrealen03@gmail.com")
@@ -85,6 +97,9 @@ while api.check_connect() == False:
     api.connect()
     telaLogin.window.close()
 
+#
+#Se tudo der certo no login a tela principal é instanciada 
+#
 tela = Tela()
 
 if tela.values["account"]:
@@ -100,6 +115,9 @@ elif tela.values["time"] == "5 min":
 else:
     tela.values["time"] = 15  
 
+#
+#mecanismo principal, baseado na opção de agendar horário para operar ou não
+#
 if tela.values["hour"]:
     hour_input = str(tela.values["hour-input"])
     print("Horário definido para " + hour_input)
