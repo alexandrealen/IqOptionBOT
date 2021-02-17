@@ -4,6 +4,7 @@ Bot feito usando a api feita pelo Lu-Yi-Hsun, portanto é necessário clonar o r
 ```bash
 git clone https://github.com/Lu-Yi-Hsun/iqoptionapi
 git clone https://github.com/raviston/IqOptionBOT
+python main.py
 ```
 # Modo de uso
 O bot ainda não está em sua versão final, se tudo der certo vou adicionando mais funcionalidades e aprimorando seu funcionamento, mas por enquanto na versão 1.0 temos um funcionamento bem simples e intuitivo.
