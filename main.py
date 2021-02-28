@@ -31,22 +31,6 @@ class TelaLogin:
             self.window = window
             self.event, self.values = window.Read()
 
-
-#
-#Tela para definir quantas operações diferentes serão agendadas
-#
-class TelaQty:
-    def __init__(self):
-        sg.theme("Reddit")
-        layout = [
-                  [sg.Text('Quantas operações diferentes deseja realizar?'), sg.Input("1", key = "qty_op")],
-                  [sg.Submit("confirmar")]
-                 ] 
-
-        window = sg.Window("iqOption Bot").layout(layout)
-        self.window = window
-        self.event, self.values = window.Read()
-
 #
 #Tela principal
 #
@@ -78,17 +62,17 @@ class Tela:
 def Buy(quantity, symbol, opt, expireTime, tela):
     check, id = api.buy(quantity, symbol, opt, expireTime)
     if check:
-        print("Lucro/preju: %.2f" % api.check_win_v3(id))
+        print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Lucro/preju: %.2f" % api.check_win_v3(id))
     else:
-        print("Operação falhou, verifique se inseriu os dados corretamente e se o simbolo o qual deseja apostar está aberto")
+        print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Operação falhou, verifique se inseriu os dados corretamente e se o simbolo o qual deseja apostar está aberto")
 
     tela.window.Element("reset").Update(visible = True)
-    print("A operação terminou, se deseja operar novamente, clique em resetar")
+    print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": A operação terminou, se deseja operar novamente, clique em resetar")
     
 
 
 def operar(value, symbol , opt, expireTime, tela):  
-    print("Deu a hora menó, iniciando a operação")
+    print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Deu a hora menó, iniciando a operação")
     t2 = threading.Thread(target=Buy, args=(value, symbol , opt, expireTime, tela, ))
     t2.daemon = True
     t2.start()
@@ -104,8 +88,8 @@ def CreateAndManageLoginWindow():
     if telaLogin.event == sg.WIN_CLOSED:
         telaLogin.window.close()
         exit()
-    #api = IQ_Option(str(telaLogin.values[0]), str(telaLogin.values[1]))
-    api = IQ_Option("alexandrealen03@gmail.com", "alexandrealen03@gmail.com")
+    api = IQ_Option(str(telaLogin.values[0]), str(telaLogin.values[1]))
+    #api = IQ_Option("alexandrealen03@gmail.com", "alexandrealen03@gmail.com")
     api.connect()
     telaLogin.window.close()
 
@@ -123,38 +107,6 @@ def CreateAndManageLoginWindow():
         telaLogin.window.close()
 
     return api
-
-def CreateAndManageQtyWindow():
-    telaQty = TelaQty()
-    if telaQty.event == sg.WIN_CLOSED:
-        telaQty.window.close()
-        exit()
-    telaQty.window.close()
-    while True:
-        verify = False
-        for x in range(1, 11):
-            try:
-                if int(telaQty.values["qty_op"]) == x:
-                    verify = True
-            except:
-                break
-
-        if verify == True:
-            telaQty.window.close()
-            break
-        else:
-            layout = [
-                    [sg.Text('São aceitos apenas NUMEROS INTEIROS, de 1 a 10')],
-                    [sg.Text('Quantas operações diferentes deseja realizar?'), sg.Input("1", key = "qty_op")],
-                    [sg.Submit("confirmar")]
-                    ]
-        telaQty.window = sg.Window("iqOption Bot").layout(layout)
-        telaQty.event, telaQty.values = telaQty.window.Read()
-        if telaQty.event == sg.WIN_CLOSED:
-            telaQty.window.close()
-            exit() 
-
-    return int(telaQty.values["qty_op"])
 
 def CreateAndManageMainWindow(api):
     tela = Tela()
@@ -187,15 +139,15 @@ def CreateAndManageMainWindow(api):
         #
         if tela.values["hour"]:
             hour_input = str(tela.values["hour-input"])
-            print("Horário definido para " + hour_input)
+            print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Horário definido para " + hour_input)
             value = float(tela.values["value-input"])
             symbol = tela.values["symbol"]
             opt = tela.values["opt"]
             expireTime = tela.values["time"]
-            print("valor: R$:" + str(value))
-            print("ativo: " + str(symbol))
-            print("opção: " + str(opt))
-            print("duração: " + str(expireTime) + " min")
+            print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": valor: R$:" + str(value))
+            print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": ativo: " + str(symbol))
+            print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": opção: " + str(opt))
+            print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": duração: " + str(expireTime) + " min")
             t1 = threading.Thread(target=agendar, args=(hour_input, value, symbol , opt, expireTime, tela, ))
 
             #para poder fechar o programa mesmo que a thread não tenha terminado
@@ -212,7 +164,7 @@ def CreateAndManageMainWindow(api):
                     tela.window.Element("reset").Update(visible = False)
                     break
         else:
-            print("Iniciando operação agora")
+            print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Iniciando operação agora")
             value = float(tela.values["value-input"])
             symbol = tela.values["symbol"]
             opt = tela.values["opt"]
@@ -233,10 +185,5 @@ def CreateAndManageMainWindow(api):
 #Começa instanciando a tela de login e fazendo as verificações
 #
 api = CreateAndManageLoginWindow()
-
-#qty = CreateAndManageQtyWindow()
-
-#for x in range (1, qty):
-#    threading.Thread(target=CreateAndManageMainWindow, args=(api, )).start()
 
 CreateAndManageMainWindow(api)
