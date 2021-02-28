@@ -173,7 +173,7 @@ def CreateAndManageMainWindow(api):
             print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": ativo: " + str(symbol))
             print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": opção: " + str(opt))
             print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": duração: " + str(expireTime) + " min")
-            t1 = threading.Thread(target=Buy, args=(value, symbol , opt, expireTime, ))
+            t1 = threading.Thread(target=Buy, args=(value, symbol , opt, expireTime, tela, ))
 
             #para poder fechar o programa mesmo que a thread não tenha terminado
             t1.daemon = True
