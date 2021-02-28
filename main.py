@@ -169,6 +169,10 @@ def CreateAndManageMainWindow(api):
             symbol = tela.values["symbol"]
             opt = tela.values["opt"]
             expireTime = tela.values["time"]
+            print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": valor: R$:" + str(value))
+            print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": ativo: " + str(symbol))
+            print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": opção: " + str(opt))
+            print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": duração: " + str(expireTime) + " min")
             t1 = threading.Thread(target=Buy, args=(value, symbol , opt, expireTime, ))
 
             #para poder fechar o programa mesmo que a thread não tenha terminado
@@ -179,6 +183,10 @@ def CreateAndManageMainWindow(api):
             while True:
                 event, values = tela.window.Read()
                 if event == sg.WIN_CLOSED:
+                    exit()
+                elif event == "reset":
+                    tela.window.Element("submit").Update(disabled = False)
+                    tela.window.Element("reset").Update(visible = False)
                     break
 
 #
