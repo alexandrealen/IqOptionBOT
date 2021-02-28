@@ -60,26 +60,43 @@ class Tela:
 #agendar = função que cria o schedule e fica em loop infinito tentando executar schedule (deve ser chamada por uma thread)
 #operar = função chamada pelo schedule da agendar, que vai chamar a Buy em uma nova thread
 #
-def Buy(quantity, symbol, opt, expireTime, tela):
+def Buy(api, quantity, symbol, opt, expireTime, tela, strategy):
     check, id = api.buy(quantity, symbol, opt, expireTime)
-    if check:
-        print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Lucro/preju: %.2f" % api.check_win_v3(id))
-    else:
+    if check == False:
         print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Operação falhou, verifique se inseriu os dados corretamente e se o simbolo o qual deseja apostar está aberto")
+    else:
+        print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Lucro/preju: %.2f" % api.check_win_v3(id))
+        #
+        #A estrategia que o cliente pediu para implementar consiste em:
+        #Caso ele perca, ele quer reaplicar porem com o dobro do valor. Ele deseja reaplicar 2 vezes no maximo
+        #
+        if strategy:
+            count = 1
+            result = api.check_win_v3(id)
+            while count < 3 and result < 0:
+                count = count + 1
+                quantity = quantity*2
+                print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Reaplicação numero " + (count-1))
+                print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": valor: " + quantity)
+                check, id = api.buy(quantity, symbol, opt, expireTime)
+                if check == False:
+                    print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Operação falhou, verifique se inseriu os dados corretamente e se o simbolo o qual deseja apostar está aberto")
+                    break
+                result = api.check_win_v3(id)
+                print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Lucro/preju: %.2f" % result)
 
     tela.window.Element("reset").Update(visible = True)
     print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": A operação terminou, se deseja operar novamente, clique em resetar")
     
 
-
-def operar(value, symbol , opt, expireTime, tela):  
+def operar(api, value, symbol , opt, expireTime, tela, strategy):  
     print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Deu a hora menó, iniciando a operação")
-    t2 = threading.Thread(target=Buy, args=(value, symbol , opt, expireTime, tela, ))
+    t2 = threading.Thread(target=Buy, args=(api, value, symbol , opt, expireTime, tela, strategy, ))
     t2.daemon = True
     t2.start()
 
-def agendar(hour_input, value, symbol , opt, expireTime, tela):
-    schedule.every().day.at(hour_input).do(operar, value, symbol , opt, expireTime, tela)
+def agendar(api, hour_input, value, symbol , opt, expireTime, tela, strategy):
+    schedule.every().day.at(hour_input).do(operar, api, value, symbol , opt, expireTime, tela, strategy)
     while True: 
         schedule.run_pending()
         time.sleep(1)
@@ -149,24 +166,27 @@ def CreateAndManageMainWindow(api):
             print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": ativo: " + str(symbol))
             print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": opção: " + str(opt))
             print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": duração: " + str(expireTime) + " min")
+
             if tela.values["strategy"]:
-                print("a")
+                print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": estratégia ativada")
+                t1 = threading.Thread(target=agendar, args=(api, hour_input, value, symbol , opt, expireTime, tela, True, ))
             else:
-                t1 = threading.Thread(target=agendar, args=(hour_input, value, symbol , opt, expireTime, tela, ))
+                print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": estratégia desativada")
+                t1 = threading.Thread(target=agendar, args=(api, hour_input, value, symbol , opt, expireTime, tela, False, ))
 
-                #para poder fechar o programa mesmo que a thread não tenha terminado
-                t1.daemon = True
+            #para poder fechar o programa mesmo que a thread não tenha terminado
+            t1.daemon = True
 
-                t1.start()
-                tela.window.Element("submit").Update(disabled = True)
-                while True:
-                    event, values = tela.window.Read()
-                    if event == sg.WIN_CLOSED:
-                        exit()
-                    elif event == "reset":
-                        tela.window.Element("submit").Update(disabled = False)
-                        tela.window.Element("reset").Update(visible = False)
-                        break
+            t1.start()
+            tela.window.Element("submit").Update(disabled = True)
+            while True:
+                event, values = tela.window.Read()
+                if event == sg.WIN_CLOSED:
+                    exit()
+                elif event == "reset":
+                    tela.window.Element("submit").Update(disabled = False)
+                    tela.window.Element("reset").Update(visible = False)
+                    break
         else:
             print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Iniciando operação agora")
             value = float(tela.values["value-input"])
@@ -177,7 +197,10 @@ def CreateAndManageMainWindow(api):
             print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": ativo: " + str(symbol))
             print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": opção: " + str(opt))
             print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": duração: " + str(expireTime) + " min")
-            t1 = threading.Thread(target=Buy, args=(value, symbol , opt, expireTime, ))
+            if tela.values["strategy"]:
+                t1 = threading.Thread(target=Buy, args=(api, value, symbol , opt, expireTime, tela, True, ))
+            else:
+                t1 = threading.Thread(target=Buy, args=(api, value, symbol , opt, expireTime, tela, False, ))
 
             #para poder fechar o programa mesmo que a thread não tenha terminado
             t1.daemon = True
@@ -187,6 +210,10 @@ def CreateAndManageMainWindow(api):
             while True:
                 event, values = tela.window.Read()
                 if event == sg.WIN_CLOSED:
+                    exit()
+                elif event == "reset":
+                    tela.window.Element("submit").Update(disabled = False)
+                    tela.window.Element("reset").Update(visible = False)
                     break
 
 #
