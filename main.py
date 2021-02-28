@@ -43,7 +43,7 @@ class Tela:
         layout = [
                   [sg.Text('Valor'), sg.Input("5", key = "value-input")],
                   [sg.Checkbox('Definir horário?', key = "hour", default=True), sg.Input("01:59:58", key = "hour-input")],
-                  [sg.Checkbox('Usar estratégia?', key = "strategy", default=True)]
+                  [sg.Checkbox('Usar estratégia?', key = "strategy", default=True)],
                   [sg.Checkbox('Conta Real', key = "account")],
                   [sg.OptionMenu(values = symbols, key = "symbol"), sg.OptionMenu(values = tempo, key = "time"), sg.OptionMenu(values = opt, key = "opt")],
                   [sg.Output(size = (60,6), echo_stdout_stderr = True)],
@@ -76,8 +76,8 @@ def Buy(api, quantity, symbol, opt, expireTime, tela, strategy):
             while count < 3 and result < 0:
                 count = count + 1
                 quantity = quantity*2
-                print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Reaplicação numero " + (count-1))
-                print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": valor: " + quantity)
+                print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Reaplicação numero " + str(count-1))
+                print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": valor: " + str(quantity))
                 check, id = api.buy(quantity, symbol, opt, expireTime)
                 if check == False:
                     print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Operação falhou, verifique se inseriu os dados corretamente e se o simbolo o qual deseja apostar está aberto")
