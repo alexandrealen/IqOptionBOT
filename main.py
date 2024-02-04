@@ -22,7 +22,7 @@ class TelaLogin:
         while self.values[0] == "" or self.values[1] == "":
             sg.theme("Reddit")
             layout = [
-                      [sg.Text('COLOCA O LOGIN E A SENHA ANIMAL')],
+                      [sg.Text('Insira o login e a senha')],
                       [sg.Text('Login'), sg.Input()],      
                       [sg.Text('Senha'), sg.Input(password_char = "*")],      
                       [sg.Submit("logar")]
@@ -62,7 +62,7 @@ class Tela:
 def Buy(quantity, symbol, opt, expireTime, tela):
     check, id = api.buy(quantity, symbol, opt, expireTime)
     if check:
-        print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Lucro/preju: %.2f" % api.check_win_v3(id))
+        print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Lucro/prejuízo: %.2f" % api.check_win_v3(id))
     else:
         print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Operação falhou, verifique se inseriu os dados corretamente e se o simbolo o qual deseja apostar está aberto")
 
@@ -72,7 +72,7 @@ def Buy(quantity, symbol, opt, expireTime, tela):
 
 
 def operar(value, symbol , opt, expireTime, tela):  
-    print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Deu a hora menó, iniciando a operação")
+    print(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + ": Deu a hora, iniciando a operação")
     t2 = threading.Thread(target=Buy, args=(value, symbol , opt, expireTime, tela, ))
     t2.daemon = True
     t2.start()
@@ -89,7 +89,6 @@ def CreateAndManageLoginWindow():
         telaLogin.window.close()
         exit()
     api = IQ_Option(str(telaLogin.values[0]), str(telaLogin.values[1]))
-    #api = IQ_Option("alexandrealen03@gmail.com", "alexandrealen03@gmail.com")
     api.connect()
     telaLogin.window.close()
 
